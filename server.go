@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/aceld/zinx/ziface"
 	"github.com/aceld/zinx/znet"
+	"zee.com/work/mmo_game/api"
 	"zee.com/work/mmo_game/core"
 )
 
@@ -27,7 +28,9 @@ func OnConnectionAdd(conn ziface.IConnection) {
 func main() {
 	// 创建服务器句柄
 	s := znet.NewServer()
-
+	// 注册路由
+	s.AddRouter(2, &api.WorldChatApi{}) // 聊天
+	s.AddRouter(3, &api.MoveApi{})      // 移动
 	// 注册客户端连接建立和丢失函数
 	s.SetOnConnStart(OnConnectionAdd)
 

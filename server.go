@@ -15,6 +15,12 @@ func OnConnectionAdd(conn ziface.IConnection) {
 	player.SyncPid()
 	// 同步当前玩家的初始化坐标信息给客户端， 走 MsgID:200 消息
 	player.BroadCastStartPosition()
+	// 将当前新上线玩家添加到 worldManager 中
+	core.WorldMgrObj.AddPlayer(player)
+	// 将该连接绑定属性 Pid
+	conn.SetProperty("pid", player.Pid)
+	// 同步周边玩家 上线信息， 与 显示周边玩家信息
+	player.SyncSurrounding()
 	fmt.Println("====> Player pidId = ", player.Pid, " arrived =====")
 }
 

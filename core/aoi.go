@@ -4,6 +4,15 @@ import (
 	"fmt"
 )
 
+const (
+	AoiMinX  int = 85
+	AoiMaxX  int = 410
+	AoiCntsX int = 10
+	AoiMinY  int = 10
+	AoiMaxY  int = 400
+	AoiCntsY int = 20
+)
+
 /*
 	AOI 管理模块
 */

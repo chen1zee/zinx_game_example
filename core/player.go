@@ -91,3 +91,69 @@ func (p *Player) BroadCastStartPosition() {
 	}
 	p.SendMsg(200, msg)
 }
+
+// 广播玩家聊天
+func (p *Player) Talk(content string) {
+	// 1 组建MsgId200 proto数据
+	msg := &pb.BroadCast{
+		Pid: p.Pid,
+		Tp:  1, // Tp 1 代表聊天广播
+		Data: &pb.BroadCast_Content{
+			Content: content,
+		},
+	}
+	// 2 得到当前世界所有的在线玩家
+	players := WorldMgrObj.GetAllPlayers()
+	// 3 向所有玩家发送MsgId:200 消息
+	for _, player := range players {
+		player.SendMsg(200, msg)
+	}
+}
+
+// 给当前玩家周边的(九宫格内)玩家广播自己的位置， 让他们显示自己
+func (p *Player) SyncSurrounding() {
+	// 1 根据 自己的位置，获取 周围九宫格内的玩家pid
+	pids := WorldMgrObj.AoiMgr.GetPlayerIDsByPos(p.X, p.Z)
+	// 2 根据 pid 得到所有玩家对象
+	players := make([]*Player, 0, len(pids))
+	// 3 给这些玩家发送 MsgID:200 消息，让自己出现在 对方视野中
+	for _, pid := range pids {
+		players = append(players, WorldMgrObj.GetPlayerByPid(int32(pid)))
+	}
+	// 3.1 组建 MsgId200 proto数据
+	msg := &pb.BroadCast{
+		Pid: p.Pid,
+		Tp:  2, // Tp2 代表广播坐标
+		Data: &pb.BroadCast_P{P: &pb.Position{
+			X: p.X,
+			Y: p.Y,
+			Z: p.Z,
+			V: p.V,
+		}},
+	}
+	// 3.2 每个玩家分别给对应的客户端发送200消息 显示人物
+	for _, player := range players {
+		player.SendMsg(200, msg)
+	}
+	// 4 让周围九宫格内的玩家出现在 自己的视野中
+	// 4.1 制作Message SyncPlayers 数据
+	playersData := make([]*pb.Player, 0, len(players))
+	for _, player := range players {
+		p := &pb.Player{
+			Pid: player.Pid,
+			P: &pb.Position{
+				X: player.X,
+				Y: player.Y,
+				Z: player.Z,
+				V: player.V,
+			},
+		}
+		playersData = append(playersData, p)
+	}
+	// 4.2 封装SyncPlayer protobuf 数据
+	SyncPlayerMsg := &pb.SyncPlayers{
+		Ps: playersData[:],
+	}
+	// 4.3 给当前玩家发送需要显示周围的全部玩家数据
+	p.SendMsg(202, SyncPlayerMsg)
+}

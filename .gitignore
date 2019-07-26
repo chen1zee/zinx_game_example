@@ -10,6 +10,8 @@ yarn-error.log*
 
 # gulp 生成的 模板文件
 dist_list/
+# unity3D 资源
+game_client/
 
 tests/**/coverage/
 tests/e2e/reports
